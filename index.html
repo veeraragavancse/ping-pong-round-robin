@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ping Multiple Hosts</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      input[type="text"] {
+        padding: 10px;
+        width: 300px;
+      }
+      button {
+        padding: 10px;
+        margin-left: 10px;
+      }
+      .results {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Ping Multiple Hosts</h1>
+    <p>Enter hostnames to ping, separated by commas:</p>
+    <input
+      type="text"
+      id="hostsInput"
+      placeholder="e.g. google.com, yahoo.com, bing.com"
+    />
+    <button onclick="pingHosts()">Ping</button>
+
+    <div class="results" id="results"></div>
+
+    <script>
+      function pingHosts() {
+        const input = document.getElementById("hostsInput").value;
+        const hosts = input.split(",").map((host) => host.trim());
+        document.getElementById("results").innerHTML = "Pinging...";
+
+        fetch("http://localhost:5000/ping", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ hosts: hosts }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            const resultDiv = document.getElementById("results");
+            resultDiv.innerHTML = "";
+            data.forEach((result) => {
+              const hostResult = document.createElement("div");
+
+              if (result.error) {
+                hostResult.innerHTML = `<strong>Error pinging ${result.host}:</strong> ${result.error}`;
+              } else {
+                hostResult.innerHTML = `<strong>Ping results for ${
+                  result.host
+                }:</strong><pre>${result.results.join("\n")}</pre>`;
+              }
+
+              resultDiv.appendChild(hostResult);
+            });
+          })
+          .catch((error) => {
+            document.getElementById("results").textContent =
+              "Error: " + error.message;
+          });
+      }
+    </script>
+  </body>
+</html>
